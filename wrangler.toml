@@ -1,0 +1,21 @@
+name = "apex"
+main = "worker/index.ts"
+compatibility_date = "2026-05-01"
+
+# Serve on the subpath of the existing site, same pattern as Localize.
+routes = [
+  { pattern = "charliepolito.com/apex", zone_name = "charliepolito.com" },
+  { pattern = "charliepolito.com/apex/*", zone_name = "charliepolito.com" },
+]
+
+# The built frontend. Vite emits into frontend/dist/apex (base=/apex/), so a
+# request for /apex/assets/x.js maps to that file and is served directly by
+# Cloudflare's asset host — the Worker only runs for /apex/api/*.
+[assets]
+directory = "./frontend/dist"
+binding = "ASSETS"
+
+# Overpass + Nominatim response cache (road geometry rarely changes).
+[[kv_namespaces]]
+binding = "CACHE"
+id = "5ac6b9d0e6764a7eac1916b8d7bfd127"
