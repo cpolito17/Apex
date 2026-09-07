@@ -1,0 +1,9 @@
+{
+  "name": "Apex — Find Roads Worth Driving",
+  "short_name": "Apex",
+  "start_url": "/apex/",
+  "scope": "/apex/",
+  "display": "standalone",
+  "background_color": "#0b0e14",
+  "theme_color": "#0b0e14"
+}

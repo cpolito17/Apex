@@ -19,3 +19,8 @@ binding = "ASSETS"
 [[kv_namespaces]]
 binding = "CACHE"
 id = "5ac6b9d0e6764a7eac1916b8d7bfd127"
+
+[[ratelimits]]
+name = "API_LIMITER"
+namespace_id = "17003"
+simple = { limit = 30, period = 60 }

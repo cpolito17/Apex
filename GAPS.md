@@ -117,23 +117,14 @@ defaults key-by-key: take `weights[k]` only if it's a finite number, for every
 
 ---
 
-## 5. `scripts/verify.ts` has a hardcoded cache path from the original author's machine
+## 5. Resolved: verification cache is portable
 
-**What:** the default `CACHE_DIR` is
-`/private/tmp/claude-501/-Users-charliepolito-Documents-GitHub-Projects/0ad60ba4-.../scratchpad/overpass-cache`
-— a macOS-specific scratch path from the session that built the repo.
+**What changed:** the default `CACHE_DIR` is now the repository-local
+`.overpass-cache` directory, which is ignored by Git. `APEX_CACHE_DIR` remains
+available for callers that want to put the cache elsewhere.
 
-**Where:** `scripts/verify.ts:16-18`.
-
-**Why it matters (severity: MEDIUM — it's the only verification tool):** on
-any other machine, `mkdirSync(..., {recursive: true})` will either create a
-bizarre directory tree or fail on a read-only `/private`, and nobody discovers
-`APEX_CACHE_DIR` until they read the source. The one tool guarding ranking
-quality should run out of the box.
-
-**Fix (single task):** change the fallback to a repo-relative path, e.g.
-`join(process.cwd(), ".overpass-cache")`, and add `.overpass-cache/` to
-`.gitignore`. Keep the `APEX_CACHE_DIR` override.
+**Result:** the ranking-quality verification tool now runs out of the box on
+Windows, macOS, and Linux without leaving machine-specific paths in the source.
 
 ---
 

@@ -1,80 +1,88 @@
-# Apex
+# Apex — Scenic Road Finder
 
-*Find the roads worth driving — and keep the fun where it belongs.*
+Apex is a free, interactive road-discovery map that finds scenic, curvy roads near any location. It evaluates OpenStreetMap road geometry and surrounding context, then ranks routes for drivers who want to explore engaging roads responsibly.
 
-Live at **https://charliepolito.com/apex**
+**Live app:** [https://charliepolito.com/apex/](https://charliepolito.com/apex/)
 
-Apex scans the road network around any location, scores every road on how fun
-**and** how appropriate it is for spirited driving, and maps the top 10 —
-colored light blue on the straights, deep purple through the tightest corners.
+**Portfolio:** [charliepolito.com](https://charliepolito.com/)
 
-Built from [apex-spec.md](../apex-spec.md).
+**Source:** [github.com/cpolito17/Apex](https://github.com/cpolito17/Apex)
 
-## Architecture
+## Features
 
-The spec's Docker/FastAPI deployment target was overridden by the requirement
-to ship on the existing Cloudflare setup (same pattern as Localize):
+- Search by address, town, or place.
+- Scan a configurable 5–40 km radius.
+- Choose paved roads, gravel roads, or both.
+- Rank roads with adjustable twistiness, length, isolation, traffic-control, driveway, and lane weights.
+- Re-rank locally without another network request.
+- Inspect the top ten on a MapLibre map with curvature-based coloring.
+- Use the responsive desktop panel or mobile bottom sheet.
 
-- **Cloudflare Worker** ([worker/index.ts](worker/index.ts)) — serves the built
-  SPA under `/apex/*` and proxies the two public data services with KV caching:
-  - `POST /apex/api/overpass` — OverpassQL passthrough, cached 7 days by query
-    hash (clients round bbox coords, so near-repeat searches hit cache).
-    Falls back to a second Overpass mirror on timeout/429.
-  - `GET /apex/api/geocode?q=` — Nominatim search for the address autocomplete,
-    cached 30 days, single well-identified caller.
-- **Scan engine** ([frontend/src/engine/](frontend/src/engine/)) — pure
-  TypeScript, no DOM. Runs in a browser **Web Worker** (so slider re-ranks and
-  UI stay responsive) and in Node for verification. Pipeline:
-  fetch → build graph (ways split at junctions) → per-edge curvature
-  (circumcircle-radius method, Franco-style weight buckets) → greedy
-  bidirectional stitching from curvature + arterial-corridor seeds → component
-  scoring (twist, length, homes, driveways, stops, isolation, lanes) →
-  name/overlap de-dup → top 25 returned.
-- **Re-ranking is pure client math** — the scan returns normalized
-  per-component sub-scores; sliders/presets reweight and re-sort instantly
-  with no re-scan (§3 of the spec).
-- **Frontend** — React + Vite + MapLibre GL (OpenFreeMap positron basemap),
-  base `/apex/`, emitted to `frontend/dist/apex`.
+## Architecture and technology
 
-No secrets anywhere; all services are free/no-key.
+Apex uses React, TypeScript, Vite, MapLibre GL, Cloudflare Workers, Static Assets, and KV. A browser Web Worker fetches OpenStreetMap data, builds a graph, measures curvature, stitches useful segments, and calculates normalized scores off the main UI thread. The Cloudflare Worker serves `/apex/`, proxies Nominatim and Overpass through same-origin routes, validates input, and caches successful responses.
 
-## Develop
+## Local development
+
+Requirements: a current Node.js LTS release and npm.
 
 ```sh
-npm install && cd frontend && npm install && cd ..
-npm run build        # build the SPA (wrangler serves frontend/dist)
-npm run dev          # wrangler dev on :8787 -> http://localhost:8787/apex/
+npm install
+cd frontend
+npm install
+cd ..
+npm run build
+npm run dev
 ```
 
-For frontend iteration with hot reload: `cd frontend && npm run dev` (Vite
-proxies `/apex/api` to wrangler on :8787).
+Open `http://localhost:8787/apex/`. For Vite hot reload, keep the Worker running and run `npm run dev` from `frontend/`; Vite proxies `/apex/api` to port 8787.
 
-## Verify the engine
+## Configuration
 
-Runs the real pipeline against live Overpass (disk-cached) and prints the top
-10 under every preset:
+Apex requires no API keys. The deployed Worker expects:
+
+| Binding | Type | Purpose |
+| --- | --- | --- |
+| `ASSETS` | Static Assets | Built frontend files |
+| `CACHE` | KV namespace | Cached road and geocoding responses |
+
+Never put secret values in `wrangler.toml` or commits. Add future secrets with Cloudflare's secret management.
+
+## Scripts
+
+| Command | Purpose |
+| --- | --- |
+| `npm run build` | Type-check and build the frontend |
+| `npm run dev` | Run the Worker locally |
+| `npm run verify` | Exercise the scoring engine against live Overpass data |
+| `npm run deploy` | Build and deploy with Wrangler |
+
+The verification script accepts optional latitude, longitude, radius, and surface arguments:
 
 ```sh
-npm run verify                          # Hell, MI (default test region)
-npx tsx scripts/verify.ts 35.61 -83.93 15 paved   # Tail of the Dragon
+npx tsx scripts/verify.ts 35.61 -83.93 15 paved
 ```
 
-Sanity anchors: Hell MI should surface Topping/Chilson/N Territorial/Patterson
-Lake; Deals Gap should put Calderwood Highway (the Tail of the Dragon) at #1.
+## Deployment
 
-## Deploy
+`wrangler.toml` defines the Worker, KV binding, static assets, and both `charliepolito.com/apex` routes. Deploy with `npm run deploy`. The Vite base path and web manifest intentionally use `/apex/`; preserve that prefix.
 
-```sh
-npm run deploy       # builds the frontend, then wrangler deploy
-```
+## Security and privacy
 
-Routes `charliepolito.com/apex` + `/apex/*`; KV namespace `CACHE` holds the
-Overpass/Nominatim response cache.
+- No account, cookie, analytics tracker, or application secret is required.
+- Preferences remain in browser local storage.
+- Location and road queries pass through the same-origin Worker; successful responses may be cached in KV.
+- Input is size- and shape-validated, cross-site browser requests are rejected, and the Overpass route accepts only generated read-only JSON queries.
+- Cloudflare rate limiting constrains each API route per network before it can reach an upstream provider.
 
-## Notes
+Review the policies of Cloudflare, OpenStreetMap, Nominatim, Overpass, OpenFreeMap, and Google Maps before production use.
 
-- The twistiness algorithm adapts the circumcircle-radius *method* from Adam
-  Franco's GPLv3 `curvature` project (method only, no code) — keep the license
-  in mind if this repo is ever open-sourced.
-- v2 candidates (saved presets, route/loop optimization, elevation, scenery,
-  self-hosted Overpass, sharing) are deliberately not built; see the spec §8.
+## Project status
+
+This is a working public portfolio project. Rankings are estimates, not navigation or safety guidance. Follow laws, closures, road conditions, and safe-driving practices.
+
+The curvature method was independently implemented from the mathematical approach used by Adam Franco's GPLv3 `curvature` project; no source code was copied.
+
+## License
+
+No software license has been declared. Copyright remains with the repository owner unless a license is added.

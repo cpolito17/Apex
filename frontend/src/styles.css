@@ -43,6 +43,29 @@ body {
   height: 100%;
 }
 
+.portfolio-link {
+  position: fixed;
+  top: max(12px, env(safe-area-inset-top));
+  left: max(12px, env(safe-area-inset-left));
+  z-index: 50;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 7px 11px 7px 7px;
+  border: 1px solid rgba(147, 197, 253, 0.32);
+  border-radius: 10px;
+  background: rgba(11, 14, 20, 0.9);
+  color: var(--text);
+  font-size: 12px;
+  font-weight: 600;
+  text-decoration: none;
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.3);
+  backdrop-filter: blur(8px);
+}
+.portfolio-link:hover { border-color: var(--accent); background: var(--panel-2); }
+.portfolio-link:focus-visible { outline: 2px solid var(--blue); outline-offset: 3px; }
+.portfolio-link img { border-radius: 6px; }
+
 /* ---- Left panel ---------------------------------------------------------- */
 
 .panel {
@@ -57,7 +80,8 @@ body {
 }
 
 .brand {
-  padding: 18px 20px 14px;
+  /* Leave room for the required floating portfolio control above the title. */
+  padding: 64px 20px 14px;
   border-bottom: 1px solid var(--line);
   display: flex;
   align-items: baseline;
@@ -494,6 +518,8 @@ input[type="range"]::-moz-range-thumb {
 
 /* ---- Mobile: bottom sheet over the map (§7) ------------------------------ */
 @media (max-width: 720px) {
+  .portfolio-link span { display: none; }
+  .portfolio-link { padding: 7px; }
   .app {
     flex-direction: column;
   }

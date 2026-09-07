@@ -84,6 +84,10 @@ export default function App() {
 
   return (
     <div className="app">
+      <a className="portfolio-link" href="https://charliepolito.com/" aria-label="Back to CharliePolito.com portfolio">
+        <img src={`${import.meta.env.BASE_URL}charlie-monogram.svg`} alt="" width="24" height="24" />
+        <span>CharliePolito.com</span>
+      </a>
       <MapView routes={ranked.map((r) => r.route)} hoveredId={hoveredId} fitAllKey={fitAllKey} />
 
       <div className={`panel${collapsed ? " collapsed" : ""}`}>

@@ -14,8 +14,7 @@ import { scan } from "../frontend/src/engine/scan";
 import type { SurfaceChoice } from "../frontend/src/engine/stitch";
 
 const CACHE_DIR =
-  process.env.APEX_CACHE_DIR ??
-  "/private/tmp/claude-501/-Users-charliepolito-Documents-GitHub-Projects/0ad60ba4-a9b6-440b-9f4c-642ff270642c/scratchpad/overpass-cache";
+  process.env.APEX_CACHE_DIR ?? join(process.cwd(), ".overpass-cache");
 
 const fetcher: Fetcher = async (query) => {
   mkdirSync(CACHE_DIR, { recursive: true });

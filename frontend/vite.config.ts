@@ -1,11 +1,23 @@
 import react from "@vitejs/plugin-react";
 import { defineConfig } from "vite";
+import { copyFileSync, mkdirSync } from "node:fs";
+
+function cloudflareHeaders() {
+  return {
+    name: "cloudflare-root-headers",
+    apply: "build" as const,
+    closeBundle() {
+      mkdirSync("dist", { recursive: true });
+      copyFileSync("public/_headers", "dist/_headers");
+    },
+  };
+}
 
 export default defineConfig({
   // Served under charliepolito.com/apex/. Makes asset URLs and
   // import.meta.env.BASE_URL resolve under /apex/.
   base: "/apex/",
-  plugins: [react()],
+  plugins: [react(), cloudflareHeaders()],
   build: {
     // Emit into dist/apex so built paths mirror the /apex/ prefix; the
     // Worker's [assets] directory points at dist. See wrangler.toml.

@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /apex/
+
+Sitemap: https://charliepolito.com/apex/sitemap.xml
